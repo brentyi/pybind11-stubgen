@@ -193,7 +193,8 @@ class PropertySignature(object):
         return FunctionSignature.argument_type(FunctionSignature('name', self.setter_args).split_arguments()[1])
 
     def get_all_involved_types(self):
-        return FunctionSignature('name', self.setter_args).get_all_involved_types()
+        out = FunctionSignature('name', self.setter_args).get_all_involved_types()
+        return out
 
 
 # If true numpy.ndarray[int32[3,3]] will be reduced to numpy.ndarray
@@ -213,10 +214,11 @@ def replace_numpy_array(match_obj):
 
     shape = match_obj.group("shape")
     if shape:
-        shape = ", _Shape[{}]".format(shape)
+        shape = ", ({})".format(shape)
     else:
         shape = ""
-    result = r"numpy.ndarray[{type}{shape}]".format(type=numpy_type, shape=shape)
+    # result = r"numpy.ndarray[{type}{shape}]".format(type=numpy_type, shape=shape)
+    result = r"typing_extensions.Annotated[numpy.typing.NDArray[{type}]{shape}]".format(type=numpy_type, shape=shape)
     return result
 
 
@@ -840,7 +842,6 @@ class ModuleStubsGenerator(StubsGenerator):
                 'from {} import {}{}'.format(class_.__module__, class_name, suffix)
             ]
 
-        # import used packages
         used_modules = sorted(self.get_involved_modules_names())
         if used_modules:
             # result.append("if TYPE_CHECKING:")
