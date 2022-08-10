@@ -1,14 +1,25 @@
-from typing import Optional, Callable, Iterator, Iterable, List, Set, Mapping, Tuple, Any, Dict
 import ast
-import warnings
 import importlib
-import itertools
 import inspect
+import itertools
 import logging
-import sys
 import os
 import re
+import sys
+import warnings
 from argparse import ArgumentParser
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    Mapping,
+    Optional,
+    Set,
+    Tuple,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -213,12 +224,18 @@ def replace_numpy_array(match_obj):
         numpy_type = "numpy." + numpy_type
 
     shape = match_obj.group("shape")
+
+    try:
+        eval(str(shape))
+    except NameError:
+        shape = f'"{shape}"'
+
     if shape:
         shape = ", ({})".format(shape)
     else:
         shape = ""
     # result = r"numpy.ndarray[{type}{shape}]".format(type=numpy_type, shape=shape)
-    result = r"typing_extensions.Annotated[numpy.typing.NDArray[{type}]{shape}]".format(type=numpy_type, shape=shape)
+    result = r"Annotated[numpy.typing.NDArray[{type}]{shape}]".format(type=numpy_type, shape=shape)
     return result
 
 
@@ -829,7 +846,8 @@ class ModuleStubsGenerator(StubsGenerator):
 
         # import everything from typing
         result += [
-            "import typing"
+            "import typing",
+            "from typing_extensions import Annotated",
         ]
 
         for name, class_ in self.imported_classes.items():
@@ -902,7 +920,7 @@ setup(
     version='1.0',
     packages=['{package_name}-stubs'],
     # PEP 561 requires these
-    install_requires=['{package_name}'],
+    install_requires=['{package_name}', 'typing_extensions'],
     package_data=find_stubs('{package_name}-stubs'),
 )""".format(package_name=self.short_name))
 
