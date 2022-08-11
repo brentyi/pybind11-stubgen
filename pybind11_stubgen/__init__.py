@@ -921,6 +921,7 @@ setup(
     packages=['{package_name}-stubs'],
     # PEP 561 requires these
     install_requires=['{package_name}', 'typing_extensions'],
+    include_package_data=True,
     package_data=find_stubs('{package_name}-stubs'),
 )""".format(package_name=self.short_name))
 
